@@ -9,7 +9,12 @@ import userRouter from "./routes/user.route.js"
 import interviewRouter from "./routes/interview.route.js"
 import paymentRouter from "./routes/payment.route.js"
 
+
 const app = express()
+
+const allowedOrigins = [
+    "https://three-interviewiq-1-o5sh.onrender.com"
+    ]
 
 const isLocalOrigin = (origin) => {
     if (!origin) return true
@@ -40,5 +45,7 @@ app.use("/api/payment" , paymentRouter)
 const PORT = process.env.PORT || 6000
 app.listen(PORT , ()=>{
     console.log(`Server running on port ${PORT}`)
-    connectDb()
-})
+    connectDb()})
+
+
+
