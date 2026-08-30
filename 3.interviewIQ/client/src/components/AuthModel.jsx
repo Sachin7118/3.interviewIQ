@@ -1,33 +1,64 @@
-import React from 'react'
-import { useEffect } from 'react'
-import { useSelector } from 'react-redux'
-import { FaTimes } from "react-icons/fa";
-import Auth from '../pages/Auth';
+import express from "express"
+import dotenv from "dotenv"
+import connectDb from "./config/connectDb.js"
+import cookieParser from "cookie-parser"
+import cors from "cors"
 
-function AuthModel({onClose}) {
-    const {userData} = useSelector((state)=>state.user)
+dotenv.config()
 
-    useEffect(()=>{
-        if(userData){
-            onClose()
-        }
+import authRouter from "./routes/auth.route.js"
+import userRouter from "./routes/user.route.js"
+import interviewRouter from "./routes/interview.route.js"
+import paymentRouter from "./routes/payment.route.js"
 
-    },[userData , onClose])
+const app = express()
 
-  return (
-    <div className='fixed inset-0 z-[999] flex items-center justify-center bg-black/10 backdrop-blur-sm px-4'>
-        <div className='relative w-full max-w-md'>
-            <button onClick={onClose} className='absolute top-8 right-5 text-gray-800 hover:text-black text-xl'>
-             <FaTimes size={18}/>
-            </button>
-            <Auth isModel={true}/>
+const allowedOrigins = [
+    "https://three-interviewiq-1-o5sh.onrender.com"
+]
 
+const isLocalOrigin = (origin) => {
+    if (!origin) return true
 
-        </div>
-
-      
-    </div>
-  )
+    return (
+        /^http:\/\/localhost:\d+$/.test(origin) ||
+        /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)
+    )
 }
 
-export default AuthModel
+app.use(
+    cors({
+        origin: (origin, callback) => {
+            if (
+                !origin ||
+                allowedOrigins.includes(origin) ||
+                isLocalOrigin(origin)
+            ) {
+                callback(null, true)
+            } else {
+                callback(new Error("CORS blocked for this origin"))
+            }
+        },
+
+        credentials: true,
+
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+
+        allowedHeaders: ["Content-Type", "Authorization"]
+    })
+)
+
+app.use(express.json())
+app.use(cookieParser())
+
+app.use("/api/auth", authRouter)
+app.use("/api/user", userRouter)
+app.use("/api/interview", interviewRouter)
+app.use("/api/payment", paymentRouter)
+
+const PORT = process.env.PORT || 6000
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+    connectDb()
+})
